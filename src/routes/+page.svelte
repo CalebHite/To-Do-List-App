@@ -2,10 +2,9 @@
   export const ssr = false;
   import { auth, db as firestore } from './firebase';
   import { collectionStore, userStore } from 'sveltefire';
-  import { collection, addDoc } from "firebase/firestore";
+  import { collection, doc, addDoc, deleteDoc  } from "firebase/firestore";
   import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-  import { form, field } from 'svelte-forms';
-  import { required } from 'svelte-forms/validators';
+  import Draggable from './Draggable.svelte';
 
   const provider = new GoogleAuthProvider();
 
@@ -28,7 +27,7 @@
   const items = collectionStore(firestore, 'items');
 
   function newItem(id: number, name: string, desc: string, time: number, completeBy: string) {
-    if(name != "" && desc != "" && time != 0 && time != null && completeBy != ""){
+    if(name != "" && desc != "" && time !> 0 && time != null && completeBy != ""){
       addDoc(collection(firestore, "items"), {
       name: name,
       desc: desc,
@@ -36,6 +35,10 @@
       completeBy: completeBy
     });
     }
+  }
+
+  function delItem(id: string){
+    deleteDoc(doc(firestore, "items", id));
   }
   
   let name = "";
@@ -46,45 +49,128 @@
 </script>
 
 {#if $user}
-    <p>Hi {$user.displayName}</p>
+    <h1>Hi {$user.displayName}</h1>
+    <p>Your To Do List:</p>
 
-    <section class="item">
-      <label for="itemName">Name:</label>
-      <input type="text" id="itemName" bind:value={name} />
-      <br>
-      <label for="itemDesc">Description:</label>
-      <input type="text" id="itemDesc" bind:value={desc} />
-      <br>
-      <label for="itemTime">Hours to Complete:</label>
-      <input type="number" id="itemTime" bind:value={time} />
-      <br>
-      <label for="itemComp">Complete By:</label>
-      <input type="text" id="itemComp" bind:value={whenComplete} />
-
-      <button id="addItem" on:click={()=>{newItem($items.length - 1, name, desc, time, whenComplete)}}>Add Item</button>
-    </section>
+    <Draggable>
+      <section class="item">
+        <h2>Create Item</h2>
+        <label for="itemName">Name:</label>
+        <br>
+        <input type="text" id="itemName" bind:value={name} />
+        <br>
+        <label for="itemDesc">Description:</label>
+        <input type="text" id="itemDesc" bind:value={desc} />
+        <br>
+        <label for="itemTime">Hours to Complete:</label>
+        <input type="number" id="itemTime" bind:value={time} />
+        <br>
+        <label for="itemComp">Complete By:</label>
+        <input type="text" id="itemComp" bind:value={whenComplete} />
+        <button id="addItem" on:click={()=>{
+          newItem($items.length - 1, name, desc, time, whenComplete);
+          name = "";
+          desc = "";
+          time = 0;
+          whenComplete = "";
+          }}>Add Item</button>
+        <div class="bg"></div>
+      </section>
+    </Draggable>
 
     {#each $items as i}
-    <div class="item">
-      <h3>{i.name}</h3>
-      <h4>{i.desc}</h4>
-      <h4>{i.time} hours to complete</h4>
-      <h4>Finish by {i.completeBy}</h4>
-    </div>
-    <!-- ADD DELETE ITEM -->
+    <Draggable>
+      <div class="item">
+        <h3>{i.name}</h3>
+        <h4>{i.desc}</h4>
+        <br>
+        <h4><strong>{i.time}</strong> hours to complete</h4>
+        <br>
+        <h4>Finish by <strong>{i.completeBy}</strong></h4>
+        <br>
+        <button on:click={()=>{delItem(i.id)}} class="delete">x</button>
+        <div class="bg"></div>
+      </div>
+    </Draggable>
     {/each} 
 {:else}
     <p>Signing in...</p>
 {/if}
 
 <style lang="css">
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;900&display=swap');
+  *{
+    padding: 0;
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+  }
+  :root{
+    background: #1d1d30;
+    background-image: url('../lib/asfalt-light.png');
+    overflow-x: hidden;
+  }
   .item{
-    background: gray;
-    width: 20%;
-    border-radius: 5%;
+    width: 11rem;
+    padding: 3rem;
+    position: absolute;
+    z-index: 2;
+  }
+  .bg{
+    width: 100%;
+    height: 100%;
+    opacity: .5;
+    background: #494878;
+    position: absolute;
+    top: 0;
+    left: 0; 
+    z-index: -1;
+  }
+
+  h1{
+    text-align: center;
+    margin-top: 20%;
+    font-weight: 900;
+    font-size: 3rem;
+    color: #EEE2DE;
+    text-shadow: -2px 2px #EA906C;
+  }
+  p{
+    text-align: center;
+    font-size: 1rem;
+    color: #EEE2DE;
+  }
+  h2, h3{
+    font-weight: 900;
+    color: #EA906C;
+  }
+  label, h4, h5, h6{
+    font-weight: 300;
+    color: #EEE2DE;
   }
   #addItem{
-    position: relative;
-    left: 37%;
+    margin-top: 5%;
+    background-color: #EEE2DE;
+    padding: 5px;
+    border: transparent;
+  }
+  .delete{
+    font-size: 1.5rem;
+    background: transparent;
+    border: transparent;
+    color: #EEE2DE;
+    position: absolute;
+    right: 5px;
+    top: 0;
+  }
+  .delete:hover{
+    color: #b03e3e;
+  }
+  #addItem:hover{
+    background-color: #EA906C
+  }
+  input{
+    background: transparent;
+    border: 2px solid #EEE2DE;
+    color: #EA906C;
   }
 </style>
