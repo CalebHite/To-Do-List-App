@@ -1,70 +1,51 @@
 <script lang="ts">
-  import Doc from '$lib/Doc.svelte';
-  import { collectionStore, docStore, userStore } from '$lib/stores';
-  import User from '$lib/User.svelte';
-  import { db as firestore, auth } from './firebase';
-  import { signInAnonymously } from "firebase/auth";
-  import { addDoc, collection, Firestore, orderBy, query, refEqual, where } from 'firebase/firestore';
-  import Collection from '$lib/Collection.svelte';
-  import FirebaseApp from '$lib/FirebaseApp.svelte';
+  export const ssr = false;
+  import { auth, db as firestore } from './firebase';
+  import { collectionStore, userStore } from 'sveltefire';
+  import { getDatabase, ref, set } from "firebase/database";
+  import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 
-  async function addPost(uid:string) {
-    const posts = collection(firestore, `users/${uid}/posts`);
-    await addDoc(posts, {
-      content: (Math.random() + 1).toString(36).substring(7),
-      created: Date.now(),
-    });
+  const provider = new GoogleAuthProvider();
+
+  function signIn(){
+    signInWithPopup(auth, provider)
+  .then((result) => {
+    const credential = GoogleAuthProvider.credentialFromResult(result);
+    if(credential != null){
+      const token = credential.accessToken;
+    }
+    const user = result.user;
+  }).catch((error) => {
+    console.log(error)
+    const credential = GoogleAuthProvider.credentialFromError(error);
+  });
   }
 
-  $: makeQuery = (uid:string) => {
-    const q = query(collection(firestore, `users/${uid}/posts`), orderBy('created', 'desc'));
-    return q;
-  }
+  const user = userStore(auth);
 
+  const items = collectionStore(firestore, 'items');
 
-
+  // function newItem(id: number, name: string, desc: string, time: number, completeBy: number) {
+  //   set(ref(firestore, 'items/' + id), {
+  //     name: name,
+  //     description: desc,
+  //     completeBy: completeBy,
+  //     time: time
+  //     });
+  // }
 </script>
 
-<FirebaseApp {auth} {firestore}>
+{#if $user}
+    <p>Hi {$user.displayName}</p>
 
-  <Doc ref="posts/test" startWith={{ content: 'sup'}} let:data={post}>
-    <p>{post.content}</p>
-    <div slot="loading">
-      <p>Loading...</p>
+    {#each $items as i}
+    <div>
+      <h3>{i.name}</h3>
+      <h4>{i.description}</h4>
+      <h4>{i.time} hours to complete</h4>
+      <h4>Finish by {i.whenComplete}</h4>
     </div>
-  </Doc>
-
-  <User let:user>
-
-    <p>Hello {user?.uid}</p>  
-
-    <Doc ref="posts/test" let:data={post}>
-      <p>{post.content}</p>
-      <div slot="loading">
-        <p>Loading...</p>
-      </div>
-    </Doc>
-
-    <h1>Your Posts</h1>
-
-    <Collection ref={makeQuery(user.uid)} startWith={[]} let:data={posts} let:count>
-
-      <p>You've made {count} posts</p>
-
-      <ul>
-        {#each posts as post (post.id)}
-          <li>{post.content} ... { post.id }</li>
-        {/each}
-      </ul>
-
-      <button on:click={() => addPost(user.uid)}>Add Post</button>
-    </Collection>
-
-
-    <div slot="signedOut">
-      <p>Sign in to do stuff</p>
-      <button on:click={() => signInAnonymously(auth)}>Sign in</button>
-    </div>
-  </User>
-
-</FirebaseApp>
+    {/each} 
+{:else}
+    <p>Sign in...</p>
+{/if}
