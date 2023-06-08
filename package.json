@@ -26,6 +26,7 @@
 	"type": "module",
 	"dependencies": {
 		"svelte-forms": "^2.3.1",
-		"sveltefire": "^0.2.3"
+		"sveltefire": "^0.2.3",
+		"tailwindcss": "^3.3.2"
 	}
 }

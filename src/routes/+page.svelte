@@ -28,12 +28,14 @@
   const items = collectionStore(firestore, 'items');
 
   function newItem(id: number, name: string, desc: string, time: number, completeBy: string) {
-    addDoc(collection(firestore, "items"), {
+    if(name != "" && desc != "" && time != 0 && time != null && completeBy != ""){
+      addDoc(collection(firestore, "items"), {
       name: name,
       desc: desc,
       time: time,
       completeBy: completeBy
     });
+    }
   }
   
   let name = "";
@@ -46,27 +48,43 @@
 {#if $user}
     <p>Hi {$user.displayName}</p>
 
-    <section>
+    <section class="item">
       <label for="itemName">Name:</label>
       <input type="text" id="itemName" bind:value={name} />
+      <br>
       <label for="itemDesc">Description:</label>
       <input type="text" id="itemDesc" bind:value={desc} />
+      <br>
       <label for="itemTime">Hours to Complete:</label>
       <input type="number" id="itemTime" bind:value={time} />
+      <br>
       <label for="itemComp">Complete By:</label>
       <input type="text" id="itemComp" bind:value={whenComplete} />
 
-      <button on:click={()=>{newItem($items.length - 1, name, desc, time, whenComplete)}}>Add Item</button>
+      <button id="addItem" on:click={()=>{newItem($items.length - 1, name, desc, time, whenComplete)}}>Add Item</button>
     </section>
 
     {#each $items as i}
-    <div>
+    <div class="item">
       <h3>{i.name}</h3>
       <h4>{i.desc}</h4>
       <h4>{i.time} hours to complete</h4>
       <h4>Finish by {i.completeBy}</h4>
     </div>
+    <!-- ADD DELETE ITEM -->
     {/each} 
 {:else}
-    <p>Sign in...</p>
+    <p>Signing in...</p>
 {/if}
+
+<style lang="css">
+  .item{
+    background: gray;
+    width: 20%;
+    border-radius: 5%;
+  }
+  #addItem{
+    position: relative;
+    left: 37%;
+  }
+</style>
