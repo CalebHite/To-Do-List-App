@@ -52,8 +52,7 @@
     <h1>Hi {$user.displayName}</h1>
     <p>Your To Do List:</p>
 
-    <Draggable>
-      <section class="item">
+      <section class="create-item">
         <h2>Create Item</h2>
         <label for="itemName">Name:</label>
         <br>
@@ -76,7 +75,6 @@
           }}>Add Item</button>
         <div class="bg"></div>
       </section>
-    </Draggable>
 
     {#each $items as i}
     <Draggable>
@@ -109,11 +107,17 @@
     background-image: url('../lib/asfalt-light.png');
     overflow-x: hidden;
   }
-  .item{
+  .create-item, .item{
     width: 11rem;
     padding: 3rem;
     position: absolute;
     z-index: 2;
+  }
+  .create-item{
+    top: 10px;
+  }
+  .item:active{
+    border: 2px dashed #EEE2DE;
   }
   .bg{
     width: 100%;
@@ -170,7 +174,7 @@
   }
   input{
     background: transparent;
-    border: 2px solid #EEE2DE;
-    color: #EA906C;
+    border: 1px solid #EEE2DE;
+    color: #EEE2DE;
   }
 </style>
