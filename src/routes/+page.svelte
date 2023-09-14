@@ -92,7 +92,7 @@
     </Draggable>
     {/each} 
 {:else}
-    <p>Signing in...</p>
+    <button class="sign-in" on:click="{signIn}"><h2>Sign In</h2></button>
 {/if}
 
 <style lang="css">
@@ -176,5 +176,11 @@
     background: transparent;
     border: 1px solid #EEE2DE;
     color: #EEE2DE;
+  }
+  .sign-in{
+    padding: .5rem;
+    position: absolute;
+    left: 45%;
+    top: 45%;
   }
 </style>
